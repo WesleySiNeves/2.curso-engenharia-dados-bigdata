@@ -1,0 +1,20 @@
+Lambda Architecture
+Combina processamento em batch e em tempo real:
+
+Camada de batch: Processamento completo de dados históricos
+Camada de velocidade: Processamento em tempo real
+Camada de serviço: Combinação dos resultados das camadas anteriores
+
+Kappa Architecture
+Simplifica a Lambda Architecture tratando todos os dados como streams:
+
+Camada de streaming: Todos os dados fluem através de uma plataforma de streaming
+Camada de serviço: Consulta os resultados processados
+
+Data Mesh
+Abordagem descentralizada para governança de dados:
+
+Domínios de dados: Propriedade de dados distribuída por domínios de negócios
+Dados como produto: Cada domínio trata seus dados como produtos
+Plataforma de self-service: Permite que os domínios sejam autônomos
+Governança federada: Políticas e padrões compartilhados

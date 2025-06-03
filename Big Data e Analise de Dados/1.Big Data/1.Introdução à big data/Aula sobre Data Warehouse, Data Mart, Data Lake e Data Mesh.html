@@ -1,0 +1,260 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aula: Data Warehouse, Data Mart, Data Lake e Data Mesh</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .example {
+            background: #e8f4f8;
+            padding: 15px;
+            border-left: 5px solid #007bff;
+            margin: 10px 0;
+        }
+        #mindmap {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .node {
+            cursor: pointer;
+        }
+        .node circle {
+            fill: #007bff;
+            stroke: #0056b3;
+            stroke-width: 1.5px;
+        }
+        .node text {
+            font-size: 12px;
+            fill: #333;
+        }
+        .link {
+            fill: none;
+            stroke: #ccc;
+            stroke-width: 2px;
+        }
+        .tooltip {
+            position: absolute;
+            background: #333;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Aula: Data Warehouse, Data Mart, Data Lake e Data Mesh</h1>
+        <p>Este material foi criado para ajudá-lo a entender os conceitos de Data Warehouse, Data Mart, Data Lake e Data Mesh, com explicações teóricas, exemplos práticos e um mapa mental interativo para facilitar sua preparação para o concurso público.</p>
+
+        <div class="section">
+            <h2>1. Data Warehouse</h2>
+            <p>Um <strong>Data Warehouse</strong> é um repositório centralizado que armazena grandes quantidades de dados históricos de várias fontes, organizados para suportar análises e relatórios. Ele é otimizado para consultas analíticas (OLAP) e geralmente usa modelagem dimensional (como esquemas em estrela ou floco de neve).</p>
+            <ul>
+                <li><strong>Características:</strong> Dados estruturados, integração de múltiplas fontes, otimizado para leitura, histórico de dados.</li>
+                <li><strong>Uso:</strong> Relatórios empresariais, análises de tendências, suporte à tomada de decisão.</li>
+            </ul>
+            <div class="example">
+                <h3>Exemplo:</h3>
+                <p>Uma rede de varejo usa um Data Warehouse para consolidar dados de vendas de todas as lojas, permitindo análises como "Qual produto vendeu mais em cada região no último trimestre?".</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2. Data Mart</h2>
+            <p>Um <strong>Data Mart</strong> é um subconjunto do Data Warehouse, focado em um departamento ou área específica da organização (ex.: marketing, finanças). Ele é menor, mais especializado e projetado para atender necessidades específicas.</p>
+            <ul>
+                <li><strong>Características:</strong> Dados estruturados, escopo limitado, alta performance para análises específicas.</li>
+                <li><strong>Uso:</strong> Relatórios departamentais, análises rápidas para equipes específicas.</li>
+            </ul>
+            <div class="example">
+                <h3>Exemplo:</h3>
+                <p>O departamento de marketing de uma empresa cria um Data Mart com dados de campanhas publicitárias para analisar o retorno sobre investimento (ROI) de cada campanha.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>3. Data Lake</h2>
+            <p>Um <strong>Data Lake</strong> é um repositório centralizado que armazena dados brutos, estruturados, semiestruturados e não estruturados, em seu formato nativo. É ideal para análises avançadas, como aprendizado de máquina e big data.</p>
+            <ul>
+                <li><strong>Características:</strong> Flexibilidade de formatos, escalabilidade, dados brutos, requer governança.</li>
+                <li><strong>Uso:</strong> Análises preditivas, ciência de dados, integração com ferramentas de big data.</li>
+            </ul>
+            <div class="example">
+                <h3>Exemplo:</h3>
+                <p>Uma empresa de tecnologia armazena logs de servidores, dados de sensores IoT e postagens de redes sociais em um Data Lake para análises de comportamento do usuário com machine learning.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>4. Data Mesh</h2>
+            <p>O <strong>Data Mesh</strong> é um paradigma descentralizado que trata os dados como produtos, distribuindo a responsabilidade pela gestão de dados entre equipes (domínios). Ele promove autonomia, interoperabilidade e governança distribuída.</p>
+            <ul>
+                <li><strong>Características:</strong> Descentralização, dados como produtos, foco em domínios, interoperabilidade.</li>
+                <li><strong>Uso:</strong> Organizações complexas com múltiplas equipes, escalabilidade de governança de dados.</li>
+            </ul>
+            <div class="example">
+                <h3>Exemplo:</h3>
+                <p>Uma empresa global permite que cada unidade de negócios (ex.: vendas, logística) gerencie seus próprios dados como "produtos", com padrões comuns para integração com outras equipes.</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Mapa Mental Interativo</h2>
+            <p>Clique nos nós do mapa mental abaixo para visualizar detalhes sobre cada conceito.</p>
+            <div id="mindmap"></div>
+        </div>
+    </div>
+
+    <script>
+        // Dados do mapa mental
+        const data = {
+            name: "Conceitos de Dados",
+            children: [
+                {
+                    name: "Data Warehouse",
+                    details: "Repositório centralizado, dados estruturados, otimizado para análises (OLAP), histórico de dados."
+                },
+                {
+                    name: "Data Mart",
+                    details: "Subconjunto do Data Warehouse, focado em departamentos, alta performance para análises específicas."
+                },
+                {
+                    name: "Data Lake",
+                    details: "Armazena dados brutos (estruturados, semiestruturados, não estruturados), ideal para big data e machine learning."
+                },
+                {
+                    name: "Data Mesh",
+                    details: "Paradigma descentralizado, dados como produtos, governança distribuída, foco em domínios."
+                }
+            ]
+        };
+
+        // Configuração do mapa mental com D3.js
+        const width = 800, height = 400;
+        const svg = d3.select("#mindmap")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        const g = svg.append("g")
+            .attr("transform", "translate(40,0)");
+
+        const tree = d3.tree().size([height, width - 160]);
+        const root = d3.hierarchy(data);
+        tree(root);
+
+        // Links (conexões entre nós)
+        g.selectAll(".link")
+            .data(root.links())
+            .enter()
+            .append("path")
+            .attr("class", "link")
+            .attr("d", d3.linkHorizontal()
+                .x(d => d.y)
+                .y(d => d.x));
+
+        // Nós
+        const node = g.selectAll(".node")
+            .data(root.descendants())
+            .enter()
+            .append("g")
+            .attr("class", "node")
+            .attr("transform", d => `translate(${d.y},${d.x})`);
+
+        node.append("circle")
+            .attr("r", 5);
+
+        node.append("text")
+            .attr("dy", ".31em")
+            .attr("x", d => d.children ? -10 : 10)
+            .style("text-anchor", d => d.children ? "end" : "start")
+            .text(d => d.data.name);
+
+        // Tooltip para detalhes
+        const tooltip = d3.select("body")
+            .append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        node.on("mouseover", function(event, d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", .9);
+            tooltip.html(d.data.details || d.data.name)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+            tooltip.transition()
+                .duration(500)
+                .style("opacity", 0);
+        });
+    </script>
+</body>
+</html>
